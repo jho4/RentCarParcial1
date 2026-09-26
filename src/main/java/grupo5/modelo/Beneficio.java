@@ -1,4 +1,4 @@
-package com.rentcar.modelo;
+package grupo5.modelo;
 
 public class Beneficio {
     private String nombre;

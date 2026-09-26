@@ -1,4 +1,4 @@
-package com.rentcar.modelo;
+package grupo5.modelo;
 
 import java.util.ArrayList;
 import java.util.List;

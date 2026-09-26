@@ -1,4 +1,4 @@
-package com.rentcar.modelo;
+package grupo5.modelo;
 
 import java.time.LocalDate;
 

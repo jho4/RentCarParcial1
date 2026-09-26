@@ -1,4 +1,4 @@
-package com.rentcar.modelo;
+package grupo5.modelo;
 
 public class ServicioAdicional implements Facturable {
     private String codigo;
@@ -58,5 +58,8 @@ public class ServicioAdicional implements Facturable {
     @Override
     public double calcularValor() {
         return precio;
+    }
+    public boolean isDisponible() {
+        return true; // o return this.disponible; según los atributos que tenga la clase
     }
 }

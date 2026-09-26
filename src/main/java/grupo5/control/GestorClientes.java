@@ -1,6 +1,6 @@
-package com.rentcar.control;
+package grupo5.control;
 
-import com.rentcar.modelo.Cliente;
+import grupo5.modelo.Cliente;
 import java.util.ArrayList;
 import java.util.List;
 
