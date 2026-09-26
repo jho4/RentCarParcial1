@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ReservaBuilder {
+    /*
+    Se agrega private String codigo;
+    */
+    private String codigo;
     private Cliente cliente;
     private Vehiculo vehiculo;
     private ModalidadAlquiler modalidad;
@@ -12,6 +16,15 @@ public class ReservaBuilder {
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
     private double descuento;
+
+    /*
+    Se agrega método conCodigo, que debido funcionamiento
+    */
+
+    public ReservaBuilder conCodigo(String codigo) {
+        this.codigo = codigo;
+        return this;
+    }
 
     public ReservaBuilder() {
         this.servicios = new ArrayList<>();
@@ -50,6 +63,19 @@ public class ReservaBuilder {
     }
 
     public Reserva construir() {
-        return new Reserva(cliente, vehiculo, modalidad, servicios, fechaInicio, fechaFin, descuento);
+        // Genera un código automático de reserva si Miguel no definió el campo 'codigo'
+        String codigoReserva = "RES-" + System.currentTimeMillis();
+
+        // Instanciamos la Reserva con el orden correcto de parámetros
+        Reserva reserva = new Reserva(codigoReserva, this.cliente, this.vehiculo, this.modalidad, this.fechaInicio, this.fechaFin, this.descuento);
+
+        // Agregamos los servicios adicionales si existen
+        if (this.servicios != null) {
+            for (ServicioAdicional servicio : this.servicios) {
+                reserva.agregarServicioAdicional(servicio);
+            }
+        }
+
+        return reserva;
     }
-}
+    }

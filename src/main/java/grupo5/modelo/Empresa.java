@@ -100,4 +100,11 @@ public class Empresa {
     public List<Reserva> getReservas() {
         return reservas;
     }
+
+    public boolean agregarReserva(Reserva reserva) {
+        if (reserva != null) {
+            return this.reservas.add(reserva); // Asegúrate de que la lista en Empresa se llame 'reservas'
+        }
+        return false;
+    }
 }
