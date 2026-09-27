@@ -18,7 +18,7 @@ import javafx.stage.Stage;
 
 import java.time.LocalDate;
 
-public class MainApp extends Application {
+public class AplicacionPrincipal extends Application {
 
     private GestorReservas gestorReservas;
     private GestorClientes gestorClientes;

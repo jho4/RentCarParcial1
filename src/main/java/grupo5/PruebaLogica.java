@@ -8,7 +8,7 @@ import grupo5.modelo.*;
 
 import java.time.LocalDate;
 
-public class PruebaBackend {
+public class PruebaLogica {
 
     public static void main(String[] args) {
         System.out.println("==================================================");
