@@ -1,4 +1,4 @@
-package grupo5.control;
+package grupo5.controlador;
 
 import grupo5.modelo.Cliente;
 import java.util.ArrayList;
