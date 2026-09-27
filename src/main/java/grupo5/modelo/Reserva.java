@@ -6,10 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Clase de dominio que representa una reserva de alquiler realizada por un cliente.
- * Asocia al cliente, vehiculo, modalidad y servicios adicionales consumidos.
+ * Modelo de Reserva que implementa Facturable y Cloneable (Patrón PROTOTYPE).
  */
-public class Reserva {
+public class Reserva implements Facturable, Cloneable {
 
     private String codigo;
     private Cliente cliente;
@@ -19,10 +18,10 @@ public class Reserva {
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
     private double descuento;
+    private String estado; // "ACTIVA" o "CANCELADA"
 
-    public Reserva(String codigo, Cliente cliente, Vehiculo vehiculo,
-                   ModalidadAlquiler modalidad, LocalDate fechaInicio,
-                   LocalDate fechaFin, double descuento) {
+    public Reserva(String codigo, Cliente cliente, Vehiculo vehiculo, ModalidadAlquiler modalidad,
+                   LocalDate fechaInicio, LocalDate fechaFin, double descuento) {
         this.codigo = codigo;
         this.cliente = cliente;
         this.vehiculo = vehiculo;
@@ -31,46 +30,62 @@ public class Reserva {
         this.fechaFin = fechaFin;
         this.descuento = descuento;
         this.serviciosAdicionales = new ArrayList<>();
+        this.estado = "ACTIVA";
     }
 
-    /**
-     * Calcula la cantidad de dias transcurridos entre la fecha inicial y la final.
-     * @return Dias de alquiler (minimo 1).
-     */
-    public int getDiasAlquiler() {
-        if (fechaInicio == null || fechaFin == null) {
-            return 0;
+    public void agregarServicioAdicional(ServicioAdicional servicio) {
+        if (servicio != null) {
+            this.serviciosAdicionales.add(servicio);
         }
-        int dias = (int) ChronoUnit.DAYS.between(fechaInicio, fechaFin);
-        return Math.max(dias, 1); // Garantiza minimo 1 dia de cobro
     }
 
-    /**
-     * Calcula el valor final de la reserva:
-     * (Costo de la modalidad por los dias) + (Costo de servicios adicionales) - Descuento.
-     * @return Valor total a pagar.
-     */
-    public double calcularValorTotal() {
-        int dias = getDiasAlquiler();
-        double costoModalidad = modalidad.calcularCostoPorDias(dias);
+    @Override
+    public double calcularValor() {
+        if ("CANCELADA".equalsIgnoreCase(this.estado)) {
+            return 0.0;
+        }
+
+        long dias = ChronoUnit.DAYS.between(fechaInicio, fechaFin);
+        if (dias <= 0) {
+            dias = 1; // Mínimo 1 día de alquiler
+        }
+
+        double tarifaVehiculo = (vehiculo != null) ? vehiculo.getTarifaDiaria() : 0.0;
+        double tarifaModalidad = (modalidad != null) ? modalidad.getValorDiario() : 0.0;
+
+        double costoBase = (tarifaVehiculo + tarifaModalidad) * dias;
 
         double costoServicios = 0.0;
         for (ServicioAdicional servicio : serviciosAdicionales) {
             costoServicios += servicio.calcularValor();
         }
 
-        double subtotal = costoModalidad + costoServicios;
-        double total = subtotal - descuento;
-        return Math.max(total, 0.0);
+        double total = costoBase + costoServicios - descuento;
+        return Math.max(0.0, total);
     }
 
-    public void agregarServicioAdicional(ServicioAdicional servicio) {
-        if (servicio != null && servicio.isDisponible()) {
-            this.serviciosAdicionales.add(servicio);
+    /**
+     * Implementación del Patrón Creacional PROTOTYPE para duplicar una reserva.
+     */
+    @Override
+    public Reserva clone() {
+        try {
+            Reserva clon = (Reserva) super.clone();
+            // Clonación profunda de la lista de servicios adicionales
+            clon.serviciosAdicionales = new ArrayList<>(this.serviciosAdicionales);
+            clon.codigo = "RES-CLON-" + System.currentTimeMillis();
+            clon.estado = "ACTIVA";
+            return clon;
+        } catch (CloneNotSupportedException e) {
+            Reserva clon = new Reserva("RES-CLON-" + System.currentTimeMillis(),
+                    this.cliente, this.vehiculo, this.modalidad,
+                    this.fechaInicio, this.fechaFin, this.descuento);
+            clon.serviciosAdicionales = new ArrayList<>(this.serviciosAdicionales);
+            return clon;
         }
     }
 
-    // Métodos de acceso (Getters y Setters)
+    // Getters y Setters
     public String getCodigo() { return codigo; }
     public void setCodigo(String codigo) { this.codigo = codigo; }
 
@@ -83,7 +98,7 @@ public class Reserva {
     public ModalidadAlquiler getModalidad() { return modalidad; }
     public void setModalidad(ModalidadAlquiler modalidad) { this.modalidad = modalidad; }
 
-    public List<ServicioAdicional> getServiciosAdicionales() { return new ArrayList<>(serviciosAdicionales); }
+    public List<ServicioAdicional> getServiciosAdicionales() { return serviciosAdicionales; }
 
     public LocalDate getFechaInicio() { return fechaInicio; }
     public void setFechaInicio(LocalDate fechaInicio) { this.fechaInicio = fechaInicio; }
@@ -93,4 +108,12 @@ public class Reserva {
 
     public double getDescuento() { return descuento; }
     public void setDescuento(double descuento) { this.descuento = descuento; }
+
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
+
+    // Puente con GestorFacturacion
+    public double calcularValorTotal() {
+        return calcularValor();
+    }
 }

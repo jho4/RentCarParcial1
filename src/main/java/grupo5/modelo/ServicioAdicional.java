@@ -6,6 +6,9 @@ public class ServicioAdicional implements Facturable {
     private String descripcion;
     private double precio;
     private boolean disponibilidad;
+    // Se agregan cantidad, para poder consultar disponibilidad y su respectiva oferta por cantidad
+    private int cantidadTotal;
+    private int cantidadAlquilados;
 
     public ServicioAdicional(String codigo, String nombre, String descripcion, double precio, boolean disponibilidad) {
         this.codigo = codigo;
@@ -13,7 +16,12 @@ public class ServicioAdicional implements Facturable {
         this.descripcion = descripcion;
         this.precio = precio;
         this.disponibilidad = disponibilidad;
+        this.cantidadTotal = disponibilidad ? 10 : 0;
+        this.cantidadAlquilados = 0;
     }
+
+
+    // Getters y Setters
 
     public String getCodigo() {
         return codigo;
@@ -55,11 +63,38 @@ public class ServicioAdicional implements Facturable {
         this.disponibilidad = disponibilidad;
     }
 
+    public int getCantidadTotal() { return cantidadTotal; }
+    public void setCantidadTotal(int cantidadTotal) { this.cantidadTotal = cantidadTotal; }
+
+    public int getCantidadAlquilados() { return cantidadAlquilados; }
+    public void setCantidadAlquilados(int cantidadAlquilados) { this.cantidadAlquilados = cantidadAlquilados; }
+
+    public int getCantidadDisponible() {
+        return Math.max(0, cantidadTotal - cantidadAlquilados);
+    }
+
+    //Se agregan métodos para agregar lógica al sistema
+    public void alquilar() {
+        if (getCantidadDisponible() > 0) {
+            this.cantidadAlquilados++;
+            if (getCantidadDisponible() == 0) {
+                this.disponibilidad = false;
+            }
+        }
+    }
+
+    public void liberar() {
+        if (this.cantidadAlquilados > 0) {
+            this.cantidadAlquilados--;
+            this.disponibilidad = true;
+        }
+    }
     @Override
     public double calcularValor() {
         return precio;
     }
+
     public boolean isDisponible() {
-        return true; // o return this.disponible; según los atributos que tenga la clase
+        return this.disponibilidad && getCantidadDisponible() > 0;
     }
 }

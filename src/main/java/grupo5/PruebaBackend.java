@@ -1,5 +1,6 @@
 package grupo5;
 
+import grupo5.controlador.GestorClientes;
 import grupo5.controlador.GestorFacturacion;
 import grupo5.controlador.GestorReservas;
 import grupo5.fabrica.ModalidadFabrica;
@@ -7,83 +8,79 @@ import grupo5.modelo.*;
 
 import java.time.LocalDate;
 
-/**
- * Clase ejecutable de prueba ajustada a los constructores después de combinar códigos.
- */
 public class PruebaBackend {
 
     public static void main(String[] args) {
         System.out.println("==================================================");
-        System.out.println("    RENT CAR - PRUEBA DE QUE FUNCIONE EL PROGRAMA EN CONSOLA     ");
+        System.out.println("   Prueba por consola del proyecto       ");
         System.out.println("==================================================");
 
-        try {
-            // 1. Verificación del Singleton Empresa
+        // 1. Prueba SINGLETON (Empresa)
+        Empresa empresa = Empresa.obtenerInstancia();
+        System.out.println("1. [SINGLETON] Instancia de Empresa obtenida con éxito.");
 
-            Empresa empresa = Empresa.obtenerInstancia();
-            System.out.println("1. [SINGLETON] Instancia de Empresa obtenida con éxito.");
+        // 2. Prueba Gestor Clientes
+        GestorClientes gestorClientes = new GestorClientes();
+        Cliente cliente1 = new Cliente("Carlos Pérez", "1098765432", "6", "carlos@uniquindio.edu.co", 28); // "6" es Número Perfecto
+        gestorClientes.registrarCliente(cliente1);
 
-            // 2. Creación de Cliente (5 parámetros según el constructor de Miguel)
+        Cliente clienteEncontrado = gestorClientes.buscarPorTelefono("6");
+        boolean esPerfecto = gestorClientes.esTelefonoPerfecto("6");
 
-            Cliente cliente = new Cliente("1098765432", "Jhoan Esteban", "3001234567", "jhoan@ejemplo.com", 22);
+        System.out.println("2. [GESTOR CLIENTES & UNIQUINDIANIDAD]");
+        System.out.println("   - Cliente registrado y buscado por teléfono: " + (clienteEncontrado != null ? clienteEncontrado.getNombreCompleto() : "NO ENCONTRADO"));
+        System.out.println("   - ¿El teléfono es Número Perfecto? " + (esPerfecto ? "SI (Aplica Descuento Uniquindianidad)" : "NO"));
 
-            // Creación de Vehículo
+        // 3. Prueba FACTORY METHOD (Modalidad Premium)
+        ModalidadAlquiler modalidadPremium = ModalidadFabrica.crearModalidad(
+                "PREMIUM", "MOD-PREM", "Ejecutiva Premium",
+                "Cobertura total con conductor adicional", 1, 150000.0,
+                EstadoModalidad.DISPONIBLE, "Todo Riesgo", 2, "Asistencia 24/7 VIP"
+        );
+        System.out.println("3. [FACTORY METHOD] Modalidad Premium creada con éxito.");
 
-            Vehiculo vehiculo = new Vehiculo("ABC-123", "Toyota", "Corolla", 2024, "Sedán", 150000.0);
+        // 4. Prueba vehiculo y servicios adicionales (Facturable)
 
-            System.out.println("2. [MODELO] Cliente creado: " + cliente.getNombreCompleto());
-            System.out.println("   [MODELO] Vehículo creado: " + vehiculo.getMarca() + " " + vehiculo.getModelo() + " (" + vehiculo.getPlaca() + ")");
+        Vehiculo vehiculo = new Vehiculo("ABC-123", "Toyota", "Corolla Cross", 2024, "SUV", 120000.0);
+        ServicioAdicional gps = new ServicioAdicional("SERV-01", "GPS Satelital", "Navegador", 25000.0, true);
+        ServicioAdicional seguro = new ServicioAdicional("SERV-02", "Seguro Extra", "Cobertura amplia", 40000.0, true);
 
-            // 3. Verificación de Modalidad usando la fábrica
+        // 5. Prueba BUILDER (Reserva)
+        ReservaBuilder builder = new ReservaBuilder();
+        Reserva reservaOriginal = builder.conCliente(cliente1)
+                .conVehiculo(vehiculo)
+                .conModalidad(modalidadPremium)
+                .conFechas(LocalDate.now(), LocalDate.now().plusDays(3))
+                .agregarServicio(gps)
+                .agregarServicio(seguro)
+                .conDescuento(15000.0)
+                .construir();
 
-            ModalidadAlquiler modalidadEjecutiva = ModalidadFabrica.crearModalidad(
-                    "EJECUTIVA", "MOD-01", "Ejecutiva", "Modalidad para viajes ejecutivos",
-                    500, 120000.0, EstadoModalidad.DISPONIBLE, "Conductor opcional", 0, "VIP"
-            );
-            System.out.println("3. [FACTORY METHOD] Modalidad creada con éxito: " + modalidadEjecutiva.getClass().getSimpleName());
+        GestorReservas gestorReservas = new GestorReservas();
+        gestorReservas.registrarReserva(reservaOriginal);
 
-            // 4. Servicio Adicional (5 parámetros: id, nombre, descripcion, precio, disponible)
-            ServicioAdicional gps = new ServicioAdicional("SERV-01", "Navegador GPS", "Sistema de navegación satelital", 25000.0, true);
-            System.out.println("4. [MODELO] Servicio adicional instanciado: " + gps.getNombre() + " (Disponible: " + gps.isDisponible() + ")");
+        System.out.println("4. [BUILDER] Reserva construida y registrada:");
+        System.out.println("   - Código: " + reservaOriginal.getCodigo());
+        System.out.println("   - Valor Calculado: $" + reservaOriginal.calcularValorTotal());
 
-            // 5. Verificación del Patrón Builder (ReservaBuilder)
+        // 6. Prueba PATRÓN PROTOTYPE (Clonación)
+        Reserva reservaClonada = gestorReservas.clonarReserva(reservaOriginal.getCodigo());
+        System.out.println("5. [PROTOTYPE] Reserva clonada exitosamente:");
+        System.out.println("   - Nuevo Código Clon: " + (reservaClonada != null ? reservaClonada.getCodigo() : "ERROR AL CLONAR"));
+        System.out.println("   - Cliente Clonado: " + reservaClonada.getCliente().getNombreCompleto());
 
-            LocalDate inicio = LocalDate.now();
-            LocalDate fin = inicio.plusDays(5);
+        // 7. Prueba Cancelación reserva
+        boolean cancelada = gestorReservas.cancelarReserva(reservaOriginal.getCodigo());
+        System.out.println("6. [CANCELACIÓN] Estado de cancelación de reserva original: " + (cancelada ? "CANCELADA (" + reservaOriginal.getEstado() + ")" : "ERROR"));
+        System.out.println("   - Valor tras cancelación: $" + reservaOriginal.calcularValorTotal());
 
-            ReservaBuilder builder = new ReservaBuilder();
-            Reserva reserva = builder.conCodigo("RES-2026-001")
-                    .conCliente(cliente)
-                    .conVehiculo(vehiculo)
-                    .conModalidad(modalidadEjecutiva)
-                    .conFechas(inicio, fin)
-                    .agregarServicio(gps)
-                    .conDescuento(20000.0)
-                    .construir();
+        // 8. Prueba Gestor facturación
+        GestorFacturacion gestorFacturacion = new GestorFacturacion();
+        double ingresosPeriodo = gestorFacturacion.calcularIngresosPorPeriodo(LocalDate.now().minusDays(1), LocalDate.now().plusDays(10));
+        System.out.println("7. [GESTOR FACTURACIÓN] Ingresos activos calculados en el período: $" + ingresosPeriodo);
 
-            System.out.println("5. [BUILDER] Reserva construida correctamente:");
-            System.out.println("   - Código: " + reserva.getCodigo());
-            System.out.println("   - Período: " + reserva.getFechaInicio() + " al " + reserva.getFechaFin());
-
-            // 6. Verificación del Gestor de Reservas
-
-            GestorReservas gestorReservas = new GestorReservas();
-            boolean registroExitoso = gestorReservas.registrarReserva(reserva);
-            System.out.println("6. [GESTOR RESERVAS] Registro en el sistema: " + (registroExitoso ? "ÉXITO" : "FALLO"));
-
-            // 7. Verificación del Gestor de Facturación y Reporte Financiero
-
-            GestorFacturacion gestorFacturacion = new GestorFacturacion();
-            double ingresos = gestorFacturacion.calcularIngresosPorPeriodo(inicio.minusDays(1), fin.plusDays(1));
-            System.out.println("7. [GESTOR FACTURACIÓN] Ingresos calculados para el período: $" + ingresos);
-
-            System.out.println("==================================================");
-            System.out.println("  ¡TODAS LAS PRUEBAS PASARON PAPUS!");
-            System.out.println("==================================================");
-
-        } catch (Exception e) {
-            System.err.println("\n❌ ERROR DETECTADO DURANTE LA EJECUCIÓN:");
-            e.printStackTrace();
-        }
+        System.out.println("==================================================");
+        System.out.println(" ¡Todo okis Papu!");
+        System.out.println("==================================================");
     }
 }
